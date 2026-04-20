@@ -362,7 +362,45 @@ Initialize the project directory as *git* project:
 ```sh
 # create new git project
 git init --initial-branch=main      # initialize new local git repository
+```
 
+If you have never created a local *git* repository on your laptop, you may be
+asked to create a local *git* configuration file first.
+File [`$HOME/.gitconfig`](https://github.com/sgra64/dotfiles/blob/main/.gitconfig)
+is created in your *HOME*-directory with commands:
+
+```sh
+git config --global user.name "your name"
+git config --global user.email "your@email.com"
+```
+
+Show content of file *$HOME/.gitconfig*:
+
+```sh
+cat $HOME/.gitconfig        # show '.gitconfig' file
+```
+```
+[user]
+    name = Sven Graupner                <-- your name
+    email = sgraupner@bht-berlin.de     <-- your email address
+
+[core]
+    ignorecase = true       # ignore upper/lower case in file names
+    autocrlf = false        # disable crlf conversion on checkout
+    filemode = false        # ignore filemode (rwx) changes
+    eol = lf                # always use newline '\n' as end-of-line
+
+[init]
+        defaultBranch = main
+```
+
+**Important:** specifically for *Windows* laptops, put entries under `[core]`
+and `[init]` into your *$HOME/.gitconfig* file.
+
+Back to the *se1-play* project. Show the project content with the new local
+*git* repository:
+
+```sh
 ls -la                              # show the content of the project directory
 ```
 ```
@@ -374,8 +412,19 @@ drwxr-xr-x 1   0 Apr  6 22:17 .git/             <-- new directory with git repos
 -rw-r--r-- 1 123 Apr  6 21:40 HelloWorld.java
 ```
 
+Next, create an empty root commit and tag as *"root"*:
 
-Create two commits:
+```sh
+git commit --allow-empty -m "root commit (empty)"       # create empty root commit
+git tag root                                            # tag commit as 'root'
+
+git log --oneline                                       # show the new commit
+```
+```
+e9c43c5 (HEAD -> main, tag: root) root commit (empty)   <-- empty root commit
+```
+
+Next, create two commits:
 
 - an empty *root commit* - adviced as start of a new *git* repository.
 
