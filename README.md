@@ -342,12 +342,10 @@ valid for all *git* projects a user has on a laptop.
 File *.gitconfig* is created when a local *git* repository is initialized for
 the first time.
 
-Put project `hello-world` under git control :
+Put project `hello-world` under git control:
 
 ```sh
-cd ~/workspaces/hello-world         # change into the 'hello-world' directory
-
-ls -la                              # show the content of the project directory
+ls -la                              # make sure you are in the project directory
 ```
 ```
 total 6
@@ -357,24 +355,26 @@ drwxr-xr-x 1   0 Apr  6 22:14 ../
 -rw-r--r-- 1 123 Apr  6 21:40 HelloWorld.java
 ```
 
-Initialize the project directory as *git* project:
-
-```sh
-# create new git project
-git init --initial-branch=main      # initialize new local git repository
-```
-
-If you have never created a local *git* repository on your laptop, you may be
-asked to create a local *git* configuration file first.
-File [`$HOME/.gitconfig`](https://github.com/sgra64/dotfiles/blob/main/.gitconfig)
+If you have never created a local *git* repository on your laptop, you may
+be asked to create a local *git* configuration file first.
+File [*$HOME/.gitconfig*](https://github.com/sgra64/dotfiles/blob/main/.gitconfig)
 is created in your *HOME*-directory with commands:
 
 ```sh
+# add entries 'user.name' and 'user.email' to file '.gitconfig'
 git config --global user.name "your name"
 git config --global user.email "your@email.com"
+
+# add more entries:
+git config --global core.ignorecase true        # ignore upper/lower case in file names
+git config --global core.autocrlf false         # disable crlf conversion on checkout
+git config --global core.filemode false         # ignore filemode (rwx) changes
+git config --global core.eol lf                 # always use newline '\n' as end-of-line
+
+git config --global init.defaultBranch main     # 'main' is default branch, not 'master'
 ```
 
-Show content of file *$HOME/.gitconfig*:
+Show the content of file *$HOME/.gitconfig*:
 
 ```sh
 cat $HOME/.gitconfig        # show '.gitconfig' file
@@ -394,15 +394,25 @@ cat $HOME/.gitconfig        # show '.gitconfig' file
         defaultBranch = main
 ```
 
-**Important:** specifically for *Windows* laptops, put entries under `[core]`
-and `[init]` into your *$HOME/.gitconfig* file.
 
-Back to the *se1-play* project. Show the project content with the new local
-*git* repository:
+&nbsp;
+
+Initialize the project directory as a *git* project:
+
+```sh
+# create new git project
+git init --initial-branch=main      # initialize new local git repository
+```
+
+Git has created a new local git repository of the project that resides in a
+sub-directory of the project named `.git` (mind the dot `.`):
 
 ```sh
 ls -la                              # show the content of the project directory
 ```
+
+<img src="img/git-1a-after-init.png" width="600"/>
+<!-- 
 ```
 total 14
 drwxr-xr-x 1   0 Apr  6 22:17 ./
@@ -411,54 +421,114 @@ drwxr-xr-x 1   0 Apr  6 22:17 .git/             <-- new directory with git repos
 -rw-r--r-- 1 427 Apr  6 22:15 HelloWorld.class
 -rw-r--r-- 1 123 Apr  6 21:40 HelloWorld.java
 ```
+-->
 
-Next, create an empty root commit and tag as *"root"*:
+
+Next, create an empty root commit and tag the commit as *"root"*:
 
 ```sh
 git commit --allow-empty -m "root commit (empty)"       # create empty root commit
 git tag root                                            # tag commit as 'root'
-
-git log --oneline                                       # show the new commit
-```
-```
-e9c43c5 (HEAD -> main, tag: root) root commit (empty)   <-- empty root commit
 ```
 
-Next, create two commits:
-
-- an empty *root commit* - adviced as start of a new *git* repository.
-
-- a commit with file `HelloWorld.java`
+Show the first commit:
 
 ```sh
-# create first (empty) commit and tag as 'root' commmit
-git commit --allow-empty -m "root commit (empty)"
-git tag root
+# show the commit (full)
+git log
+```
+<!-- 
+```
+commit fe36082634fbf491f0347664aa40c80b8f49a3ff (tag: root)
+Author: Sven Graupner <sgraupner@bht-berlin.de>
+Date:   Mon Apr 20 18:27:36 2026 +0200
 
-git log --oneline               # show commit history
+    root commit (empty)
 ```
-```
-b301f93 (HEAD -> main, tag: root) root commit (empty)   <-- one commit on branch 'main'
-```
+-->
 
-Verify the *git* status of the project:
+The *commit-ID* are shown as 40-Byte hashes that are computed from the
+content of the commit (*fe36082634fbf491f0347664aa40c80b8f49a3ff*).
+The commit also contains the committers name (*Author*), the timestamp
+when the commit was made and the commit message (*"root commit (empty)"*):
+
+<img src="img/git-1b-log-after-root-commit-full.png" width="600"/>
+
+
+The short form of the command only shows the first 7-digits of the
+*commit-ID* (*fe36082*) with the commit message:
 
 ```sh
-git status                      # show git status of the project
+# show the commit (short version)
+git log --oneline
 ```
 
-Files in red are marked as *untracked files* (unknown to *git*):
+<img src="img/git-1b-log-after-root-commit-short.png" width="600"/>
+<!-- 
+```
+fe36082 (HEAD -> main, tag: root) root commit (empty)   <-- empty root commit
+```
+-->
 
-<img src="img/git-1.png" width="600"/>
+
+Next, show the *git status* of the project:
+
+```sh
+git status
+```
+
+Output shows two files as *"untracked files"* (unknown the git):
+
+<img src="img/git-1c-status-after-init.png" width="600"/>
+
+*Source code* (file `HelloWorld.java`) will be checked into the git repository
+(*"committed"*), while *compiled code* (file `HelloWorld.class`) will not be
+committed to the *git* repository.
+
+&nbsp;
+
+Learn about special file
+[*.gitignore*](https://www.w3schools.com/git/git_ignore.asp).
+The next step is to create a `.gitignore` file that tells *git* to ignore files
+ending with `.class` from being committed or listed as *untracked files*.
+
+Create a new file `.gitignore` (mind the dot `.` in front of the name) with content:
+
+```sh
+# make git to ignore files ending with '.class' (compiled classes)
+*.class
+```
+
+Show the content of the new file.
+
+```sh
+cat .gitignore          # show content of the new '.gitignore' file
+
+git status              # show the project status
+```
+
+The project's *git status* no longer shows file `HelloWorld.class` as *untracked*,
+but the new file `.gitignore` appears:
+
+<img src="img/git-1d-status-after-gitignore.png" width="600"/>
+<!-- 
+```
+On branch main
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        .gitignore
+        HelloWorld.java
+```
+nothing added to commit but untracked files present (use "git add" to track)
+-->
 
 
 &nbsp;
 
-Next, we want to create a second commit on branch *main* that contains file
-`HelloWorld.java`.
+Next, stage file `.gitignore` (*stage:* prepare for coming *commit*).
 
-A *"commit"* is a *set (snapshot) of files* that is recorded on a branch, here
-branch: *main*. A commit is always added at the end of a branch after a
+A *"git commit"* is a *set (snapshot) of files* that is recorded on a branch,
+here branch: *main*. A commit is always added at the end of a branch after a
 preceeding commit. A *branch* hence is a linear sequence of recorded commits.
 
 Commits are created in two steps in *git*:
@@ -473,57 +543,94 @@ Commits are created in two steps in *git*:
     assigned a unique *commit-ID* and appended at the end of the current branch.
     The *staging area* is cleared.
 
-Step 1 *"staging"* is performed by the `git add` and `git reset` commands that
-add or remove files to/from the *staging area*:
+*"Staging"* is performed by the `git add <files>` command adding files to the
+*"staging area"* (command `git reset <files>` removes files from the
+*staging area*):
+
+```sh
+# stage file '.gitignore'
+git add .gitignore
+
+git status
+```
+
+Output shows the file `.gitignore` staged (in *green*):
+
+<img src="img/git-2a-status-after-staging-gitignore.png" width="600"/>
+<!-- 
+```
+On branch main
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   .gitignore
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        HelloWorld.java
+```
+-->
+
+Next, commit the staged content with message: *"add .gitignore"* and show the new commit:
+
+```sh
+# commit staged content
+git commit -m "add .gitignore"
+
+# show the new commit
+git log --oneline
+```
+
+<img src="img/git-2b-status-after-commiting-gitignore.png" width="600"/>
+<!-- 
+```
+815e642 (HEAD -> main) add .gitignore
+fe36082 (tag: root) root commit (empty)
+```
+-->
+
+Next, commit and stage file `HelloWorld.java`:
 
 ```sh
 # stage file 'HelloWorld.java'
 git add HelloWorld.java
 
-# show git status of the project after staging file 'HelloWorld.java'
+# commit staged file 'HelloWorld.java'
+git commit -m "add HelloWorld.java"
+
+# show the new commit
+git log --oneline
+```
+
+The commit-log now shows three commmits:
+
+<img src="img/git-3a-status-after-commiting-helloworld.png" width="600"/>
+<!-- 
+```
+0de1d03 (HEAD -> main) add HelloWorld.java
+815e642 add .gitignore
+fe36082 (tag: root) root commit (empty)
+```
+-->
+
+*HEAD* points to the last commit  of the *main* branch indicating the
+commit the project directory (*"working tree"*) is synchronized with.
+
+After commmits, the *"working tree is clean"*, which means there are no
+uncommitted changes:
+
+```sh
+# show git status of the project
 git status
 ```
-
-<img src="img/git-2.png" width="600"/>
-
-Command: `git reset HelloWorld.java` removes the file from the *staging area*,
-with `add`, the file can be added again.
-
-Committing the snapshot of files (only one file here) with message:
-
-```sh
-# commit all staged files with message (-m)
-git commit -m "added source file HelloWorld.java"
-
-git log --oneline               # show the commit history (short)
-git log                         # show the commit history (full)
+<img src="img/git-3b-status-clean-working-tree.png" width="600"/>
+<!-- 
 ```
-
-The commit-log now has two commits.
-*Commit-ID* are shown in a short 7-digit version (`7b46019`).
-
-<img src="img/git-3a.png" width="600"/>
-
-The long-form of the commit-log shows more detail, including the full 40-digit
- *commit-ID* (`7b46019...`).
-*HEAD* points to the last (top) commit  of the *main* branch indicating the
-commit the project directory (*"working tree"*) is synchronized with. 
-
-<img src="img/git-3b.png" width="600"/>
-
-The next command shows the difference between the current (last) commit
-addressed by `HEAD` and the previous commit addressed by `HEAD~1`
-(read: *HEAD* minus 1, the tilde sign `'~'` is used for minus since `'-'`
-has other effects in shell commands):
-
-```sh
-git diff HEAD~1..HEAD --name-status
+On branch main
+nothing to commit, working tree clean
 ```
-```
-A       HelloWorld.java         <-- 'A' means file 'HelloWorld.java' was added
-```
+-->
 
-Add *Javadoc* to file `HelloWorld.java`:
+
+Next, add *Javadoc* to file `HelloWorld.java`:
 
 ```java
 /**
@@ -537,146 +644,279 @@ public class HelloWorld {
      * @param args arguments passed from the command line
      */
     public static void main(String[] args) {
-        System.out.println("Hello, World!");
+        System.out.println("Hello, World (with Javadoc)!");
     }
 }
 ```
 
+The *git* status of the project shows the change (called *"dirty state"*):
+
+```sh
+# show git status of the project
+git status
+```
+<img src="img/git-4a-status-after-javadoc-added.png" width="600"/>
+<!-- 
+```
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   HelloWorld.java
+no changes added to commit (use "git add" and/or "git commit -a")
+```
+-->
+
+
+One can inspect changes with the *git diff* command. Green lines show new
+or updated lines while red lines show prior lines that have been deleted:
+
+```sh
+# show the modifications made to file 'HelloWorld.java'
+git diff HelloWorld.java
+```
+<img src="img/git-4b-diff-after-javadoc-added.png" width="600"/>
+<!-- 
+```
+diff --git a/HelloWorld.java b/HelloWorld.java
+index 509a3ef..bd12132 100644
+--- a/HelloWorld.java
++++ b/HelloWorld.java
+@@ -1,6 +1,14 @@
++/**
++ * Class with static {@code main(String[] args)} function that
++ * prints the {@code "Hello, World!"} message.
++ */
+ public class HelloWorld {
++    /**
++     * Print the {@code "Hello, World!"} message.
++     * @param args arguments passed from the command line
++     */
+     public static void main(String[] args) {
+-        System.out.println("Hello, World!");
++        System.out.println("Hello, World (with Javadoc)!");
+     }
+ }
+```
+-->
+
+
+Stage the changes (but don't commit yet):
+
+```sh
+# stage modifications made to file 'HelloWorld.java'
+git add HelloWorld.java
+
+# show git status of the project
+git status
+```
+<img src="img/git-4c-stage-after-javadoc-added.png" width="600"/>
+<!-- 
+```
+diff --git a/HelloWorld.java b/HelloWorld.java
+index 509a3ef..bd12132 100644
+--- a/HelloWorld.java
++++ b/HelloWorld.java
+@@ -1,6 +1,14 @@
++/**
++ * Class with static {@code main(String[] args)} function that
++ * prints the {@code "Hello, World!"} message.
++ */
+ public class HelloWorld {
++    /**
++     * Print the {@code "Hello, World!"} message.
++     * @param args arguments passed from the command line
++     */
+     public static void main(String[] args) {
+-        System.out.println("Hello, World!");
++        System.out.println("Hello, World (with Javadoc)!");
+     }
+ }
+```
+-->
+
+
 Create the *HTML* from the doc-Strings using the `javadoc` compiler:
 
 ```sh
-javadoc -d javadoc HelloWorld.java      # generate java documentation in directory 'javadoc'
+# generate java documentation, output (-d) is in directory 'javadoc'
+javadoc -Xdoclint:-missing -d javadoc HelloWorld.java
+```
+```
+Loading source file HelloWorld.java...
+Constructing Javadoc information...
+Building index for all the packages and classes...
+Standard Doclet version 21+35-LTS-2513
+Building tree for all the packages and classes...
+Generating javadoc\HelloWorld.html...
+Generating javadoc\package-summary.html...
+Generating javadoc\package-tree.html...
+Generating javadoc\overview-tree.html...
+Building index for all classes...
+Generating javadoc\allclasses-index.html...
+Generating javadoc\allpackages-index.html...
+Generating javadoc\index-all.html...
+Generating javadoc\search.html...
+Generating javadoc\index.html...
+Generating javadoc\help-doc.html...
+```
 
+Show the new directory `javadoc` in the project directory:
+
+```sh
 ls -la                                  # show content of the project directory
 ```
 ```
-total 26
-drwxr-xr-x 1   0 Apr  6 23:37 ./
-drwxr-xr-x 1   0 Apr  6 22:14 ../
-drwxr-xr-x 1   0 Apr  6 23:27 .git/
--rw-r--r-- 1 427 Apr  6 22:15 HelloWorld.class
--rw-r--r-- 1 367 Apr  6 23:25 HelloWorld.java
-drwxr-xr-x 1   0 Apr  6 23:37 javadoc/          <-- new directory with HTML
+total 23
+drwxr-xr-x 1 svgr2 Kein   0 Apr 25 23:24 .
+drwxr-xr-x 1 svgr2 Kein   0 Apr 23 13:22 ..
+drwxr-xr-x 1 svgr2 Kein   0 Apr 25 23:21 .git
+-rw-r--r-- 1 svgr2 Kein  76 Apr 21 10:33 .gitignore
+-rw-r--r-- 1 svgr2 Kein 427 Apr 20 18:01 HelloWorld.class
+-rw-r--r-- 1 svgr2 Kein 382 Apr 25 23:14 HelloWorld.java
+drwxr-xr-x 1 svgr2 Kein   0 Apr 25 23:24 javadoc            <-- new directory containing HTML
 ```
 
-The result is in a new directory (`-d`) `javadoc` in the project directory.
-Open file `javadoc/index.html` in a browser to see the created documentation:
+Open file `javadoc/index.html` in a browser to see the documentation:
 
 <img src="img/javadoc-1.png" width="600"/>
 
 &nbsp;
 
-Checking the status of the project, we find that the project has *"dirty state"*
-after the modification of file `HelloWorld.java`:
+Checking the status of the project, we find the previously staged changes
+in file `HelloWorld.java` and the new directory `javadoc` as *"untracked files"*:
 
 ```sh
 git status                              # show status of the project directory
 ```
+<img src="img/git-4d-status-after-javadoc.png" width="600"/>
+<!-- 
+On branch main
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        modified:   HelloWorld.java
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        javadoc/
+-->
 
-<img src="img/git-4.png" width="600"/>
-
-Commit the change made in file `HelloWorld.java`.
-
-```sh
-git log --oneline                     `# show status of the project directory
-```
-```
-2527ce7 (HEAD -> main) added Javadoc to HelloWorld.java     <-- third commit
-7b46019 added source file HelloWorld.java
-b301f93 (tag: root) root commit (empty)
-```
-
-Keeping seeing files that are not recored by commits in red as *"untracked"* is
-bothering and even dangerous for accidental commits, particularly when using
-shortcut `git add .` referring to *"all"* modified of untracked files.
-
-Learn about special file
-[*.gitignore*](https://www.w3schools.com/git/git_ignore.asp)
-and create one that prevents:
-
-- file `HelloWorld.class` and
-
-- directory `javadoc`
-
-from being shown as *"untracked"* and to be ignored by *git* in future.
-
-Commit file `.gitignore` as fourth commit:
-
-```
-0ba3580 (HEAD -> main) add .gitignore       <-- 4th commit, message "add .gitignore"
-2527ce7 added Javadoc to HelloWorld.java
-7b46019 added source file HelloWorld.java
-b301f93 (tag: root) root commit (empty)
-```
-
-&nbsp;
-
-Validate your `~/.gitconfig` file in your HOME directory with the example,
-particularly for *Windows* settings: `ignorecase`, `autocrlf`, `filemode`
-and `eol` must be set:
-
-```
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Global git settings in $HOME/.gitconfig apply to all git projects of a user.
-# Additional project settings are stored in the project's .git directory under
-# <proj-dir>/.git/config.
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# Validate name and email in the [user] section by editing or by commands:
-# - git config --global user.name "your name"
-# - git config --global user.email "your@email.com"
-# 
-[user]
-    name = Eric Meyer
-    email = emey@bht-berlin.de
-
-[core]
-    ignorecase = true       # ignore upper/lower case in file names
-    autocrlf = false        # disable crlf conversion on checkout
-    filemode = false        # ignore filemode (rwx) changes
-    eol = lf                # always use newline '\n' as end-of-line
-
-[init]
-    defaultBranch = main
-```
-
-
-&nbsp;
-
-Perform the final test:
+Directory `javadoc` contains compiled content that hence should not be
+recorded. Consequently, add the directory to file `.gitignore`.
 
 ```sh
-ls -la
-git status
+# add 'javadoc' to file '.gitignore'
+
+# after that, show the content of file '.gitignore'
+cat .gitignore
+```
+```
+# make git to ignore files ending with '.class' (compiled classes)
+*.class
+javadoc/                                <-- new line added
+```
+
+The *git* status of the project has changed: directory `javadoc` is now being
+ignored, but changes in file `.gitignore` are shown as modification:
+
+```sh
+git status                              # show status of the project directory
+```
+<img src="img/git-4e-status-after-javadoc-ignored.png" width="600"/>
+<!-- 
+On branch main
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        modified:   HelloWorld.java
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .gitignore
+-->
+
+Stage the change to file `.gitignore` and show the *git* status:
+
+```sh
+git add .gitignore                      # stage changes in file '.gitignore'
+
+git status                              # show status of the project directory
+```
+<img src="img/git-4f-status-after-staging.png" width="600"/>
+<!-- 
+On branch main
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        modified:   .gitignore
+        modified:   HelloWorld.java
+-->
+
+Both staged changes are related to the added *Javadoc* and can be committed
+with message: *"add Javadoc"*:
+
+```sh
+git commit -m "add Javadoc"             # commit staged changes
+```
+```
+[main 5fd5c21] add Javadoc
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+```
+
+After the commit, the *git* status is clean and the *git* log shows the
+new commit:
+
+```sh
+git status                              # show status of the project directory
+
 git log --oneline
 ```
-
-Expected output:
-
-```
-$ ls -la
-total 27
-drwxr-xr-x 1 svgr2 Kein   0 Apr  6 23:58 .
-drwxr-xr-x 1 svgr2 Kein   0 Apr  6 22:14 ..
-drwxr-xr-x 1 svgr2 Kein   0 Apr  6 23:58 .git
--rw-r--r-- 1 svgr2 Kein  17 Apr  6 23:58 .gitignore
--rw-r--r-- 1 svgr2 Kein 427 Apr  6 22:15 HelloWorld.class
--rw-r--r-- 1 svgr2 Kein 367 Apr  6 23:25 HelloWorld.java
-drwxr-xr-x 1 svgr2 Kein   0 Apr  6 23:37 javadoc
-
-$ git status
-On branch main
-nothing to commit, working tree clean       <-- clean "working tree"
-
-$ git log --oneline
-0ba3580 (HEAD -> main) add .gitignore
-2527ce7 added Javadoc to HelloWorld.java
-7b46019 added source file HelloWorld.java
-b301f93 (tag: root) root commit (empty)
-```
+<img src="img/git-4g-status-after-commit.png" width="600"/>
 <!-- 
-<img src="img/git-5.png" width="600"/>
+On branch main
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        modified:   HelloWorld.java
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   .gitignore
 -->
+
+
+The next command shows the difference between the current (last) commit
+addressed by `HEAD` and the previous commit addressed by `HEAD~1`
+(read: *HEAD* minus 1, the tilde sign `'~'` is used for the minus sign
+since `'-'` has other effects in shell commands):
+
+```sh
+# show the differences recorded in the last commit
+git diff HEAD~1..HEAD --name-status
+```
+```
+M       .gitignore              <-- 'M' means file '.gitignore' has modifications
+M       HelloWorld.java         <-- 'M' means file 'HelloWorld.java' has modifications
+```
+
+One can also inspect changes recorded in individual files between commits.
+The next command shows the line (green) added to file `.gitignore`:
+
+```sh
+# show the difference in file '.gitignore'
+git diff HEAD~1..HEAD -- .gitignore
+```
+<img src="img/git-5a-diff-gitignore.png" width="600"/>
+<!-- 
+diff --git a/.gitignore b/.gitignore
+index 1e0bacf..3060158 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,3 +1,3 @@
+ # make git to ignore files ending with '.class' (compiled classes)
+ *.class
+-
++javadoc/
+-->
+
+
+&nbsp;
 
 Take notes and answer questions:
 
@@ -684,19 +924,17 @@ Take notes and answer questions:
 
 1. What is a *commit*?
 
-1. What is a *branch*? - What is branch *main*?
+1. What is a *branch*?
 
 1. Why was file `HelloWorld.java` commited, `HelloWorld.class` and directory
     `javadoc` not?
 
-1. What do people mean saying that the project directory is in a *"clean state"*
-    or they have a *"clean project directory"* `->` you may ask your AI to find out.
+1. What do people mean when they say the project directory is in a *"clean state"* ?
 
-1. When is a *project state* *"dirty"* (you can't switch branches in *dirty state*).
-    How can *"dirty state"* be cleaned up?
+1. When is a *project state* *"dirty"* ? How can *"dirty state"* be cleaned up?
 
-1. Can commits be changed after they have been committed (e.g. files added,
-    the commit-message changed or the commit-id)?
+1. Can commits be changed after they have been committed (e.g. files added or
+    removed)?
 
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
